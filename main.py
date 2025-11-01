@@ -1,16 +1,3 @@
-#!/usr/bin/env python3
-"""
-VNC Screenshotter — совместимый с asyncvnc2 и asyncvnc, устойчивый к разным типам результата screenshot()
-Сохраняет скриншоты в папку pictures/
-
-Формат results.txt:
-IP:PORT-PASS-[DESKTOP NAME]
-пример:
-192.168.1.10:5900-null-[Windows]
-или без пароля:
-192.168.1.10:5900--[Windows]
-"""
-
 import asyncio
 import io
 import os
@@ -21,29 +8,28 @@ from pathlib import Path
 import inspect
 import traceback
 
-# Попытка импортировать asyncvnc2, иначе asyncvnc
+
 try:
-    import asyncvnc2 as av  # type: ignore
+    import asyncvnc2 as av  
     LIB_NAME = "asyncvnc2"
 except Exception:
     try:
-        import asyncvnc as av  # type: ignore
+        import asyncvnc as av  
         LIB_NAME = "asyncvnc"
     except Exception:
-        av = None  # type: ignore
+        av = None  
         LIB_NAME = None
 
 from PIL import Image
 
-# Попробуем лениво импортировать numpy если он есть (не обязательный)
 try:
-    import numpy as np  # type: ignore
+    import numpy as np  
     HAVE_NUMPY = True
 except Exception:
     np = None
     HAVE_NUMPY = False
 
-# Настройки
+
 OUTPUT_DIR = Path("pictures")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -71,7 +57,6 @@ def parse_results_file(filename="results.txt"):
             if not line:
                 continue
 
-            # Проверяем формат без пароля: IP:PORT--[DESKTOP NAME]
             if "--[" in line:
                 match = re.match(r"^(.+?):(\d+)--\[(.+)\]$", line)
                 if match:
@@ -144,7 +129,7 @@ async def save_image_from_obj(img_obj, client=None, server=None):
     raise RuntimeError(f"Unsupported screenshot() return type: {type(img_obj)}")
 
 
-async def take_screenshot_for(server, retries=1, timeout=12):  # 🔹 только 1 попытка
+async def take_screenshot_for(server, retries=1, timeout=12):  
     ip = server['ip']
     port = server['port']
     password = server['password']
@@ -235,7 +220,7 @@ async def process_servers(servers, concurrency=3):
     async def worker(srv):
         nonlocal success
         async with sem:
-            ok = await take_screenshot_for(srv, retries=1)  # 🔹 одна попытка
+            ok = await take_screenshot_for(srv, retries=1) 
             if ok:
                 success += 1
             await asyncio.sleep(0.6)
@@ -270,3 +255,4 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         cprint('yellow', "Interrupted by user. Exiting... ✋")
+
